@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0A0A0A;
+}
+
+@layer components {
+  .glass-morphism {
+    background: rgba(255, 248, 240, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+  }
+
+  .gradient-cta {
+    background: linear-gradient(135deg, #D97925 0%, #D4AF37 100%);
+    box-shadow: 0 4px 20px rgba(217, 121, 37, 0.3);
+  }
+
+  .gradient-cta:hover {
+    box-shadow: 0 6px 30px rgba(217, 121, 37, 0.5);
+  }
+}
