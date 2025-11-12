@@ -45,9 +45,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-desert-sand/30 to-cream flex items-center justify-center px-6 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-cream flex items-center justify-center px-6 py-12 relative overflow-hidden">
       {/* Decorative background elements */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-72 h-72 bg-ignition-amber rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-champagne-gold rounded-full blur-3xl"></div>
       </div>
