@@ -16,6 +16,14 @@ function App() {
     minutes: 0,
     seconds: 0
   });
+  const [signupStats, setSignupStats] = useState<{
+    count: number;
+    milestone: number;
+    spotsRemaining: number;
+    percentFilled: number;
+    isAlmostFull: boolean;
+    isCritical: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -36,6 +44,28 @@ function App() {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Fetch signup count from Supabase Edge Function
+    const fetchSignupCount = async () => {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count`);
+        const data = await response.json();
+
+        if (data.success) {
+          setSignupStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch signup count:', error);
+      }
+    };
+
+    fetchSignupCount();
+    // Refresh count every 5 minutes
+    const interval = setInterval(fetchSignupCount, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,6 +138,60 @@ function App() {
           </p>
         </motion.div>
 
+        {/* Exclusive Access Badge */}
+        {signupStats && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="mb-6"
+          >
+            <div className={`max-w-md mx-auto p-4 rounded-xl border-2 ${
+              signupStats.isCritical
+                ? 'bg-red-50/80 border-red-300'
+                : signupStats.isAlmostFull
+                  ? 'bg-orange-50/80 border-orange-300'
+                  : 'bg-white/80 border-warm-clay/30'
+            } backdrop-blur-sm shadow-lg`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-ignition-amber" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-semibold text-deep-teal">
+                    {signupStats.isCritical ? '🔥 Last Spots!' : signupStats.isAlmostFull ? '⚡ Almost Full!' : '✨ Limited Access'}
+                  </span>
+                </div>
+                <span className="text-sm font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                  {signupStats.count}/{signupStats.milestone}
+                </span>
+              </div>
+              <div className="w-full bg-cream rounded-full h-2 mb-2 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${signupStats.percentFilled}%` }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                  className={`h-full rounded-full ${
+                    signupStats.isCritical
+                      ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                      : signupStats.isAlmostFull
+                        ? 'bg-gradient-to-r from-orange-400 to-champagne-gold'
+                        : 'bg-gradient-to-r from-ignition-amber to-champagne-gold'
+                  }`}
+                />
+              </div>
+              <p className="text-xs text-deep-teal/70 text-center">
+                {signupStats.isCritical
+                  ? `Only ${signupStats.spotsRemaining} spots left in this cohort!`
+                  : signupStats.isAlmostFull
+                    ? `Just ${signupStats.spotsRemaining} spots remaining`
+                    : `Only the first ${signupStats.milestone} get early access`
+                }
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Countdown Timer */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -163,9 +247,14 @@ function App() {
               <h3 className="font-serif text-2xl text-deep-teal mb-2">
                 Welcome to the Oasis
               </h3>
-              <p className="text-deep-teal/70">
+              <p className="text-deep-teal/70 mb-2">
                 You're on the list for early access. We'll be in touch soon.
               </p>
+              {signupStats && (
+                <p className="text-sm text-ignition-amber font-semibold">
+                  ✨ You secured spot #{signupStats.count + 1} of {signupStats.milestone}
+                </p>
+              )}
               <button
                 onClick={() => setSuccess(false)}
                 className="mt-6 px-6 py-2 rounded-lg bg-ignition-amber/10 hover:bg-ignition-amber/20 text-deep-teal border border-ignition-amber/30 transition-colors text-sm font-medium"
