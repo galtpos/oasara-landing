@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const SUPABASE_URL = 'https://whklrclzrtijneqdjmiy.supabase.co';
+const LAUNCH_DATE = new Date('2025-11-27T18:00:00-05:00'); // Nov 27, 2025 @ 6pm ET
 
 function App() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,33 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const difference = LAUNCH_DATE.getTime() - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +106,44 @@ function App() {
           <p className="text-base text-deep-teal/60 leading-relaxed">
             518 JCI-certified facilities across 39 countries. Direct access. Zero middlemen. Your sovereignty.
           </p>
+        </motion.div>
+
+        {/* Countdown Timer */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="mb-8"
+        >
+          <div className="text-center mb-3">
+            <p className="text-sm text-deep-teal/60 font-medium uppercase tracking-wider">Early Access Opens In</p>
+          </div>
+          <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
+            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                {timeLeft.days}
+              </div>
+              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Days</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                {timeLeft.hours}
+              </div>
+              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Hours</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                {timeLeft.minutes}
+              </div>
+              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Mins</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                {timeLeft.seconds}
+              </div>
+              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Secs</div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Sign-up Form */}
