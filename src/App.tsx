@@ -46,21 +46,21 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    // Fetch signup count from Supabase Edge Function
-    const fetchSignupCount = async () => {
-      try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count`);
-        const data = await response.json();
+  // Fetch signup count function (extracted so we can call it on demand)
+  const fetchSignupCount = async () => {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count`);
+      const data = await response.json();
 
-        if (data.success) {
-          setSignupStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch signup count:', error);
+      if (data.success) {
+        setSignupStats(data);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch signup count:', error);
+    }
+  };
 
+  useEffect(() => {
     fetchSignupCount();
     // Refresh count every 5 minutes
     const interval = setInterval(fetchSignupCount, 5 * 60 * 1000);
@@ -91,6 +91,8 @@ function App() {
         setSuccess(true);
         setEmail('');
         setName('');
+        // Immediately refetch the updated count
+        await fetchSignupCount();
       } else {
         setError(data.message || 'Failed to join early access. Please try again.');
       }
