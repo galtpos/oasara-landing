@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { AdBanner } from './lib/AdBanner';
 
 const SUPABASE_URL = 'https://whklrclzrtijneqdjmiy.supabase.co';
-const LAUNCH_DATE = new Date('2025-11-27T18:00:00-05:00'); // Nov 27, 2025 @ 6pm ET
+const LAUNCH_DATE = new Date('2025-12-04T18:00:00-05:00'); // Dec 4, 2025 @ 6pm ET
+const MARKETPLACE_URL = 'https://oasarademo.netlify.app';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -10,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [isLaunched, setIsLaunched] = useState(false);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -37,6 +40,10 @@ function App() {
           minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((difference % (1000 * 60)) / 1000)
         });
+        setIsLaunched(false);
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setIsLaunched(true);
       }
     };
 
@@ -49,8 +56,19 @@ function App() {
   // Fetch signup count function (extracted so we can call it on demand)
   const fetchSignupCount = async () => {
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count`);
+      // Add cache-busting timestamp
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       const data = await response.json();
+
+      console.log('📊 Fetched signup count:', data);
 
       if (data.success) {
         setSignupStats(data);
@@ -194,45 +212,71 @@ function App() {
           </motion.div>
         )}
 
-        {/* Countdown Timer */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="mb-8"
-        >
-          <div className="text-center mb-3">
-            <p className="text-sm text-deep-teal/60 font-medium uppercase tracking-wider">Early Access Opens In</p>
-          </div>
-          <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
-            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
-                {timeLeft.days}
+        {/* Countdown Timer or Launch Message */}
+        {isLaunched ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-8"
+          >
+            <div className="max-w-lg mx-auto bg-gradient-to-r from-ignition-amber to-champagne-gold rounded-2xl p-8 shadow-2xl text-center">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Days</div>
+              <h3 className="font-serif text-3xl text-white mb-2">We're Live!</h3>
+              <p className="text-white/90 mb-6">The Oasara Marketplace is now open. Your journey to medical sovereignty begins.</p>
+              <a
+                href={MARKETPLACE_URL}
+                className="inline-block px-8 py-4 bg-white text-deep-teal font-semibold text-lg rounded-xl hover:bg-cream hover:scale-105 transition-all shadow-lg"
+              >
+                Enter Marketplace
+              </a>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
-                {timeLeft.hours}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-8"
+          >
+            <div className="text-center mb-3">
+              <p className="text-sm text-deep-teal/60 font-medium uppercase tracking-wider">Early Access Opens In</p>
+            </div>
+            <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
+              <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                  {timeLeft.days}
+                </div>
+                <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Days</div>
               </div>
-              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Hours</div>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
-                {timeLeft.minutes}
+              <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                  {timeLeft.hours}
+                </div>
+                <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Hours</div>
               </div>
-              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Mins</div>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
-              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
-                {timeLeft.seconds}
+              <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                  {timeLeft.minutes}
+                </div>
+                <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Mins</div>
               </div>
-              <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Secs</div>
+              <div className="bg-white/80 backdrop-blur-sm border border-warm-clay/20 rounded-xl p-4 shadow-lg">
+                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-ignition-amber to-champagne-gold bg-clip-text text-transparent">
+                  {timeLeft.seconds}
+                </div>
+                <div className="text-xs text-deep-teal/60 uppercase tracking-wider mt-1">Secs</div>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
-        {/* Sign-up Form */}
+        {/* Sign-up Form - Only show before launch */}
+        {!isLaunched && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -315,6 +359,7 @@ function App() {
             </form>
           )}
         </motion.div>
+        )}
 
         {/* Benefits */}
         <motion.div
@@ -352,6 +397,16 @@ function App() {
             <h3 className="text-deep-teal font-semibold mb-1">Direct Control</h3>
             <p className="text-deep-teal/60 text-sm">No intermediaries. Your choice. Your sovereignty.</p>
           </div>
+        </motion.div>
+
+        {/* Ad Banner */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-10 flex justify-center"
+        >
+          <AdBanner site="oasara" zone="FOOTER" />
         </motion.div>
 
         {/* Footer */}
