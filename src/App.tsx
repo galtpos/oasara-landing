@@ -44,6 +44,8 @@ function App() {
       } else {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         setIsLaunched(true);
+        // Auto-redirect to marketplace after launch
+        window.location.href = MARKETPLACE_URL;
       }
     };
 
